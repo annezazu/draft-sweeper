@@ -1,0 +1,25 @@
+{
+  "name": "annezazu/draft-sweeper",
+  "description": "WordPress dashboard widget that resurfaces abandoned drafts intelligently.",
+  "type": "wordpress-plugin",
+  "license": "GPL-2.0-or-later",
+  "require": {
+    "php": ">=8.1"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^10.5"
+  },
+  "autoload": {
+    "psr-4": {
+      "DraftSweeper\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "DraftSweeper\\Tests\\": "tests/"
+    }
+  },
+  "config": {
+    "sort-packages": true
+  }
+}

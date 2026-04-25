@@ -1,0 +1,14 @@
+.ds-list { margin: 0; padding: 0; list-style: none; }
+.ds-item { padding: 10px 0; border-bottom: 1px solid #eee; }
+.ds-item:last-child { border-bottom: 0; }
+.ds-item-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.ds-title { font-weight: 600; text-decoration: none; flex: 1; }
+.ds-score {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 36px; padding: 2px 8px; border-radius: 999px;
+  background: #2271b1; color: #fff; font-size: 12px; font-weight: 600;
+}
+.ds-nudge { margin: 6px 0 8px; color: #50575e; font-style: italic; }
+.ds-actions { display: flex; gap: 6px; }
+.ds-empty { color: #50575e; }
+.ds-item.is-dismissing { opacity: 0.4; }
