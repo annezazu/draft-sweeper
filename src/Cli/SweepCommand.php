@@ -42,7 +42,7 @@ final class SweepCommand
 
         $calc = $this->plugin->calculator();
         $topics = $this->plugin->topicsProvider()->recentTermFrequencies();
-        $nudger = $this->plugin->nudgeGenerator();
+        $summarizer = $this->plugin->summaryGenerator();
 
         $rows = [];
         foreach ($drafts as $draft) {
@@ -56,7 +56,7 @@ final class SweepCommand
                 'R' => round($score->recency, 2),
                 'T' => round($score->relevance, 2),
                 'total' => round($score->total, 3),
-                'nudge' => mb_strimwidth($nudger->generate($draft, $score), 0, 80, '…'),
+                'summary' => mb_strimwidth($summarizer->summarize($draft), 0, 80, '…'),
             ];
         }
         usort($rows, fn($a, $b) => $b['total'] <=> $a['total']);

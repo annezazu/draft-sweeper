@@ -24,7 +24,8 @@ final class ScoreCalculatorTest extends TestCase
             tagCount: 2,
             termIds: [10, 20, 30],
             daysSinceModified: 60,
-            modifiedHuman: '2 months ago',
+            modifiedHuman: '2 months',
+            startedHuman: '3 months',
             excerpt: '...',
         );
 
@@ -37,7 +38,7 @@ final class ScoreCalculatorTest extends TestCase
     public function test_brand_new_empty_draft_scores_zero(): void
     {
         $snapshot = new DraftSnapshot(
-            1, '', '', 0, false, false, false, 0, 0, [], 0, 'just now', ''
+            1, '', '', 0, false, false, false, 0, 0, [], 0, 'just now', 'just now', ''
         );
         $calc = new ScoreCalculator(new Weights(0.5, 0.2, 0.3));
         $this->assertSame(0.0, $calc->calculate($snapshot, [])->total);

@@ -67,7 +67,7 @@ Settings → **Draft Sweeper** lets you tune weights, scope (mine vs all), and t
 
 ```bash
 composer install
-vendor/bin/phpunit          # 19 unit tests covering the scoring engine
+vendor/bin/phpunit          # unit tests covering scoring + summary fallback
 ```
 
 The scoring engine lives in `src/Scoring/` and depends on nothing — pure PHP, fully unit-tested. WordPress integration is in `src/Drafts/`, `src/Dashboard/`, `src/Settings/`, `src/Cli/`, `src/Ai/`.

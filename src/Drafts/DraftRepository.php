@@ -33,6 +33,7 @@ final class DraftRepository
 
         foreach ($query->posts as $post) {
             $modifiedTs = (int) get_post_modified_time('U', true, $post);
+            $createdTs = (int) get_post_time('U', true, $post);
             $days = max(0, (int) floor(($now - $modifiedTs) / DAY_IN_SECONDS));
 
             $categories = wp_get_post_categories($post->ID, ['fields' => 'ids']);
@@ -54,6 +55,7 @@ final class DraftRepository
                 termIds: array_map('intval', array_merge($categories, $tags)),
                 daysSinceModified: $days,
                 modifiedHuman: human_time_diff($modifiedTs, $now),
+                startedHuman: human_time_diff($createdTs, $now),
                 excerpt: wp_trim_words($content, 30),
             );
         }

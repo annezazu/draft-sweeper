@@ -21,6 +21,7 @@ final class DraftSnapshot
         public readonly array $termIds,
         public readonly int $daysSinceModified,
         public readonly string $modifiedHuman,
+        public readonly string $startedHuman,
         public readonly string $excerpt,
     ) {
     }

@@ -13,7 +13,7 @@ final class DashboardWidget
     private const NONCE_ACTION = 'draft_sweeper_widget';
     private const DISMISSED_META = '_draft_sweeper_dismissed';
     private const DISMISS_TTL_DAYS = 14;
-    private const TOP_N = 5;
+    private const TOP_N = 3;
 
     public function __construct(private readonly Plugin $plugin)
     {
@@ -37,8 +37,8 @@ final class DashboardWidget
             return;
         }
         $url = $this->plugin->pluginUrl();
-        wp_enqueue_style('draft-sweeper-widget', $url . 'assets/widget.css', [], '0.1.0');
-        wp_enqueue_script('draft-sweeper-widget', $url . 'assets/widget.js', ['jquery'], '0.1.0', true);
+        wp_enqueue_style('draft-sweeper-widget', $url . 'assets/widget.css', [], '0.2.0');
+        wp_enqueue_script('draft-sweeper-widget', $url . 'assets/widget.js', ['jquery'], '0.2.0', true);
         wp_localize_script('draft-sweeper-widget', 'DraftSweeper', [
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'nonce'   => wp_create_nonce(self::NONCE_ACTION),
@@ -47,7 +47,7 @@ final class DashboardWidget
 
     public function render(): void
     {
-        echo $this->renderListMarkup();
+        echo $this->renderShell();
     }
 
     public function ajaxRefresh(): void
@@ -56,7 +56,7 @@ final class DashboardWidget
         if (! current_user_can('edit_posts')) {
             wp_send_json_error('forbidden', 403);
         }
-        wp_send_json_success(['html' => $this->renderListMarkup()]);
+        wp_send_json_success(['html' => $this->renderShell()]);
     }
 
     public function ajaxDismiss(): void
@@ -96,6 +96,26 @@ final class DashboardWidget
         return array_filter($dismissed, static fn($ts) => (int) $ts >= $cutoff);
     }
 
+    private function renderShell(): string
+    {
+        ob_start();
+        ?>
+        <div class="ds-widget">
+            <div class="ds-toolbar">
+                <p class="ds-intro"><?php esc_html_e('Drafts worth a second look.', 'draft-sweeper'); ?></p>
+                <button type="button" class="button button-link ds-refresh" aria-label="<?php esc_attr_e('Refresh suggestions', 'draft-sweeper'); ?>">
+                    <span class="dashicons dashicons-update" aria-hidden="true"></span>
+                    <span class="screen-reader-text"><?php esc_html_e('Refresh', 'draft-sweeper'); ?></span>
+                </button>
+            </div>
+            <div class="ds-list-wrap">
+                <?php echo $this->renderListMarkup(); ?>
+            </div>
+        </div>
+        <?php
+        return (string) ob_get_clean();
+    }
+
     private function renderListMarkup(): string
     {
         $userId = $this->plugin->settings()['scope'] === 'mine' ? get_current_user_id() : null;
@@ -109,7 +129,7 @@ final class DashboardWidget
 
         $calc = $this->plugin->calculator();
         $topics = $this->plugin->topicsProvider()->recentTermFrequencies();
-        $nudger = $this->plugin->nudgeGenerator();
+        $summarizer = $this->plugin->summaryGenerator();
 
         $scored = [];
         foreach ($drafts as $draft) {
@@ -126,22 +146,39 @@ final class DashboardWidget
             $draft = $row['draft'];
             /** @var Score $score */
             $score = $row['score'];
-            $nudge = $nudger->generate($draft, $score);
+            $summary = $summarizer->summarize($draft);
             $pct = (int) round($score->total * 100);
+            $displayTitle = $this->displayTitle($draft);
             ?>
             <li class="ds-item" data-id="<?php echo esc_attr((string) $draft->id); ?>">
                 <div class="ds-item-head">
                     <a class="ds-title" href="<?php echo esc_url($draft->editLink); ?>">
-                        <?php echo esc_html($draft->title); ?>
+                        <?php echo wp_kses(
+                            $displayTitle['html'],
+                            ['span' => ['class' => true]]
+                        ); ?>
                     </a>
                     <span class="ds-score" title="<?php echo esc_attr(sprintf(
-                        'C %d / R %d / T %d',
+                        /* translators: %1$d completeness, %2$d recency, %3$d relevance */
+                        __('Completeness %1$d%% · Recency %2$d%% · Relevance %3$d%%', 'draft-sweeper'),
                         (int) round($score->completeness * 100),
                         (int) round($score->recency * 100),
                         (int) round($score->relevance * 100)
                     )); ?>"><?php echo esc_html((string) $pct); ?></span>
                 </div>
-                <p class="ds-nudge"><?php echo esc_html($nudge); ?></p>
+                <p class="ds-meta">
+                    <span class="ds-meta-started"><?php echo esc_html($this->startedLabel($draft)); ?></span>
+                    <span class="ds-meta-sep" aria-hidden="true">·</span>
+                    <span class="ds-meta-words"><?php
+                        printf(
+                            esc_html(_n('%s word', '%s words', $draft->wordCount, 'draft-sweeper')),
+                            esc_html(number_format_i18n($draft->wordCount))
+                        );
+                    ?></span>
+                </p>
+                <?php if ($summary !== '') : ?>
+                    <p class="ds-summary"><?php echo esc_html($summary); ?></p>
+                <?php endif; ?>
                 <div class="ds-actions">
                     <a class="button button-primary button-small" href="<?php echo esc_url($draft->editLink); ?>">
                         <?php esc_html_e('Open', 'draft-sweeper'); ?>
@@ -155,5 +192,38 @@ final class DashboardWidget
         }
         echo '</ul>';
         return (string) ob_get_clean();
+    }
+
+    /**
+     * Builds the display title, falling back to "(no title) — first chars"
+     * for untitled drafts. Returns HTML so we can style the fallback piece.
+     *
+     * @return array{html: string}
+     */
+    private function displayTitle(DraftSnapshot $draft): array
+    {
+        if ($draft->hasTitle) {
+            return ['html' => esc_html($draft->title)];
+        }
+
+        $excerpt = trim($draft->excerpt);
+        $snippet = $excerpt !== ''
+            ? mb_strimwidth($excerpt, 0, 50, '…')
+            : '';
+
+        $label = '<span class="ds-untitled">' . esc_html__('(no title)', 'draft-sweeper') . '</span>';
+        if ($snippet !== '') {
+            $label .= ' ' . esc_html($snippet);
+        }
+        return ['html' => $label];
+    }
+
+    private function startedLabel(DraftSnapshot $draft): string
+    {
+        return sprintf(
+            /* translators: %s: human time diff like "6 months" */
+            __('Started %s ago', 'draft-sweeper'),
+            $draft->startedHuman
+        );
     }
 }

@@ -3,10 +3,10 @@ declare(strict_types=1);
 
 namespace DraftSweeper;
 
-use DraftSweeper\Ai\AiNudgeGenerator;
 use DraftSweeper\Ai\AiProviderResolver;
-use DraftSweeper\Ai\NudgeGenerator;
-use DraftSweeper\Ai\TemplateNudgeGenerator;
+use DraftSweeper\Ai\AiSummaryGenerator;
+use DraftSweeper\Ai\ExcerptSummaryGenerator;
+use DraftSweeper\Ai\SummaryGenerator;
 use DraftSweeper\Cli\SweepCommand;
 use DraftSweeper\Dashboard\DashboardWidget;
 use DraftSweeper\Drafts\DraftRepository;
@@ -88,13 +88,13 @@ final class Plugin
         return new RecentTopicsProvider();
     }
 
-    public function nudgeGenerator(): NudgeGenerator
+    public function summaryGenerator(): SummaryGenerator
     {
-        $template = new TemplateNudgeGenerator();
+        $fallback = new ExcerptSummaryGenerator();
         if (! $this->settings()['enable_ai']) {
-            return $template;
+            return $fallback;
         }
-        return new AiNudgeGenerator(new AiProviderResolver(), $template);
+        return new AiSummaryGenerator(new AiProviderResolver(), $fallback);
     }
 
     private function registerHooks(): void
