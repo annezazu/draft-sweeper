@@ -1,80 +1,86 @@
-/* Draft Sweeper widget — aligned to WP admin / Automattic design system tokens. */
+/* Draft Sweeper widget — uses WordPress admin design tokens. */
 #draft_sweeper_widget .inside { margin: 0; padding: 0; }
 
 .ds-widget {
   --ds-text: #1d2327;
   --ds-text-secondary: #50575e;
   --ds-border: #dcdcde;
+  --ds-surface-alt: #f6f7f7;
   --ds-accent: var(--wp-admin-theme-color, #2271b1);
+  --ds-accent-soft: var(--wp-admin-theme-color-darker-10, #135e96);
+  --ds-success: #2a8a3f;
+  --ds-warm: #b35c00;
+  --ds-cool: #3858e9;
   color: var(--ds-text);
   font-size: 13px;
   line-height: 1.5;
 }
 
 .ds-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
   padding: 8px 12px;
   border-bottom: 1px solid var(--ds-border);
+  background: var(--ds-surface-alt);
 }
-.ds-intro { margin: 0; color: var(--ds-text-secondary); }
-.ds-refresh.button-link {
+.ds-intro {
+  margin: 0;
   color: var(--ds-text-secondary);
-  text-decoration: none;
-  padding: 4px;
+  font-size: 12px;
 }
-.ds-refresh:hover { color: var(--ds-accent); }
-.ds-refresh .dashicons { font-size: 18px; width: 18px; height: 18px; }
-.ds-refresh.is-loading .dashicons {
-  animation: ds-spin 0.8s linear infinite;
-}
-@keyframes ds-spin { to { transform: rotate(360deg); } }
 
 .ds-list { margin: 0; padding: 0; list-style: none; }
 .ds-item {
-  padding: 12px;
+  padding: 14px 12px;
   border-bottom: 1px solid var(--ds-border);
 }
 .ds-item:last-child { border-bottom: 0; }
 
-.ds-item-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
-}
-.ds-title {
+.ds-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
   font-weight: 600;
+  letter-spacing: 0.01em;
+  margin-bottom: 6px;
+  background: rgba(34, 113, 177, 0.08);
+  color: var(--ds-accent-soft);
+}
+.ds-badge--almost-done    { background: rgba(42, 138, 63, 0.10);  color: var(--ds-success); }
+.ds-badge--on-trend       { background: rgba(56, 88, 233, 0.10);  color: var(--ds-cool); }
+.ds-badge--buried-treasure{ background: rgba(179, 92, 0, 0.10);   color: var(--ds-warm); }
+.ds-badge--half-written   { background: rgba(34, 113, 177, 0.08); color: var(--ds-accent-soft); }
+.ds-badge--fresh-spark    { background: rgba(80, 87, 94, 0.10);   color: var(--ds-text-secondary); }
+
+.ds-title {
+  display: block;
+  font-weight: 600;
+  font-size: 14px;
   text-decoration: none;
   color: var(--ds-text);
-  flex: 1;
+  line-height: 1.35;
 }
 .ds-title:hover { color: var(--ds-accent); text-decoration: underline; }
 .ds-untitled { color: var(--ds-text-secondary); font-style: italic; font-weight: 400; }
 
-.ds-score {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 32px;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: var(--ds-accent);
-  color: #fff;
-  font-size: 11px;
-  font-weight: 600;
-  line-height: 1.4;
-}
-
 .ds-meta {
-  margin: 4px 0 0;
+  margin: 4px 0 8px;
   color: var(--ds-text-secondary);
   font-size: 12px;
 }
 .ds-meta-sep { margin: 0 6px; opacity: 0.6; }
+
+.ds-progress {
+  height: 4px;
+  background: var(--ds-border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.ds-progress-bar {
+  height: 100%;
+  background: var(--ds-accent);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
 
 .ds-summary {
   margin: 8px 0 0;
@@ -87,10 +93,32 @@
   margin-top: 10px;
 }
 
+.ds-footer {
+  padding: 8px 12px 12px;
+  background: var(--ds-surface-alt);
+  border-top: 1px solid var(--ds-border);
+}
+.ds-refresh {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  justify-content: center;
+}
+.ds-refresh .dashicons {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  line-height: 1;
+}
+.ds-refresh.is-loading .dashicons { animation: ds-spin 0.8s linear infinite; }
+@keyframes ds-spin { to { transform: rotate(360deg); } }
+
 .ds-empty {
   color: var(--ds-text-secondary);
-  padding: 12px;
+  padding: 16px 12px;
   margin: 0;
+  text-align: center;
 }
 
 .ds-item.is-dismissing { opacity: 0.4; transition: opacity 0.2s; }

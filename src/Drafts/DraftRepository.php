@@ -32,8 +32,11 @@ final class DraftRepository
         $out = [];
 
         foreach ($query->posts as $post) {
-            $modifiedTs = (int) get_post_modified_time('U', true, $post);
-            $createdTs = (int) get_post_time('U', true, $post);
+            // Drafts often have post_*_gmt = '0000-00-00 00:00:00', which makes
+            // get_post_time('U', true) return epoch 0 → "56 years ago". Read the
+            // local-time columns directly and fall back to "now" for safety.
+            $modifiedTs = strtotime($post->post_modified) ?: $now;
+            $createdTs = strtotime($post->post_date) ?: $modifiedTs;
             $days = max(0, (int) floor(($now - $modifiedTs) / DAY_IN_SECONDS));
 
             $categories = wp_get_post_categories($post->ID, ['fields' => 'ids']);
