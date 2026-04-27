@@ -8,61 +8,195 @@
   --ds-border: #dcdcde;
   --ds-surface-alt: #f6f7f7;
   --ds-accent: var(--wp-admin-theme-color, #2271b1);
+  --ds-accent-hover: var(--wp-admin-theme-color-darker-10, #135e96);
+  --ds-success: #00a32a;
+  --ds-warning: #dba617;
   color: var(--ds-text);
   font-size: 13px;
   line-height: 1.5;
 }
 
 .ds-hero {
-  padding: 18px 16px 16px;
+  padding: 16px 16px 14px;
 }
 
-.ds-badge {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  background: rgba(80, 87, 94, 0.08);
-  color: var(--ds-text-secondary);
-  margin: 0 6px 10px 0;
+/* Eyebrow row: filled "today" pill + reason chip with icon */
+.ds-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
 }
-.ds-badge--today {
+.ds-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.6;
+}
+.ds-pill--today {
   background: var(--ds-accent);
   color: #fff;
 }
-
-.ds-teaser {
-  margin: 0 0 8px;
-  font-family: Georgia, "Times New Roman", serif;
-  font-style: italic;
-  font-size: 15px;
-  line-height: 1.45;
-  color: var(--ds-text);
+.ds-eyebrow-sep {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--ds-text-soft);
+  opacity: 0.5;
+}
+.ds-reason {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--ds-text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+}
+.ds-reason .dashicons {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+  line-height: 1;
+  color: var(--ds-accent);
 }
 
+/* Title — the visual anchor */
 .ds-title {
   display: block;
-  font-weight: 500;
-  font-size: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.3;
   text-decoration: none;
-  color: var(--ds-text-secondary);
-  letter-spacing: 0.01em;
+  color: var(--ds-text);
+  margin-bottom: 12px;
 }
-.ds-title:hover { color: var(--ds-accent); text-decoration: underline; }
-.ds-untitled { font-style: italic; color: var(--ds-text-soft); }
+.ds-title:hover,
+.ds-title:focus {
+  color: var(--ds-accent);
+  text-decoration: underline;
+}
+.ds-untitled {
+  font-style: italic;
+  color: var(--ds-text-soft);
+  font-weight: 400;
+}
 
+/* Progress bar + glanceable stats */
+.ds-progress {
+  margin-bottom: 8px;
+}
+.ds-progress-bar {
+  position: relative;
+  height: 6px;
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+.ds-progress-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--ds-accent);
+  transition: width 0.4s ease;
+  min-width: 4px;
+}
+.ds-progress-bar.is-near-done .ds-progress-fill { background: var(--ds-success); }
+.ds-progress-bar.is-progress  .ds-progress-fill { background: var(--ds-accent); }
+.ds-progress-bar.is-spark     .ds-progress-fill { background: var(--ds-text-soft); }
+
+.ds-progress-stats {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--ds-text-secondary);
+}
+.ds-progress-stats strong {
+  color: var(--ds-text);
+  font-weight: 600;
+}
+.ds-stat-sep {
+  color: var(--ds-text-soft);
+  opacity: 0.6;
+}
+
+/* Meta line — quiet */
 .ds-meta {
-  margin: 4px 0 12px;
+  margin: 0 0 10px;
   color: var(--ds-text-soft);
   font-size: 12px;
 }
 .ds-meta-sep { margin: 0 6px; opacity: 0.6; }
 
-.ds-actions { display: flex; gap: 6px; }
+/* Tag chips */
+.ds-chips {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.ds-chip {
+  font-size: 11px;
+  color: var(--ds-text-secondary);
+  background: var(--ds-surface-alt);
+  border: 1px solid var(--ds-border);
+  border-radius: 4px;
+  padding: 1px 7px;
+  line-height: 1.6;
+}
+.ds-chip::before {
+  content: "#";
+  color: var(--ds-text-soft);
+  margin-right: 1px;
+}
 
+/* Teaser — quieter than before, italic, only when meaningful */
+.ds-teaser {
+  margin: 0 0 14px;
+  padding: 0 0 0 10px;
+  border-left: 2px solid var(--ds-border);
+  font-family: Georgia, "Times New Roman", serif;
+  font-style: italic;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ds-text-secondary);
+}
+
+/* Action row: primary + tertiary link */
+.ds-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.ds-actions .button-hero {
+  padding: 6px 16px;
+  font-weight: 500;
+}
+.ds-dismiss.button-link {
+  color: var(--ds-text-secondary);
+  text-decoration: none;
+  font-size: 12px;
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.ds-dismiss.button-link:hover,
+.ds-dismiss.button-link:focus {
+  color: var(--ds-accent);
+  text-decoration: underline;
+}
+
+/* Footer pile-count */
 .ds-pile-count {
   margin: 0;
   padding: 10px 16px 14px;
@@ -74,6 +208,7 @@
   text-align: center;
 }
 
+/* Empty / exhausted */
 .ds-empty {
   color: var(--ds-text-secondary);
   padding: 20px 14px;

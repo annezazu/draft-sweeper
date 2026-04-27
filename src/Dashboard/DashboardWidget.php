@@ -46,9 +46,8 @@ final class DashboardWidget
         if ($hook !== 'index.php') {
             return;
         }
-        $url = $this->plugin->pluginUrl();
-        wp_enqueue_style('draft-sweeper-widget', $url . 'assets/widget.css', ['dashicons'], '0.5.0');
-        wp_enqueue_script('draft-sweeper-widget', $url . 'assets/widget.js', ['jquery'], '0.5.0', true);
+        wp_enqueue_style('draft-sweeper-widget', $this->plugin->pluginUrl('assets/widget.css'), ['dashicons'], '0.5.1');
+        wp_enqueue_script('draft-sweeper-widget', $this->plugin->pluginUrl('assets/widget.js'), ['jquery'], '0.5.1', true);
         wp_localize_script('draft-sweeper-widget', 'DraftSweeper', [
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'nonce'   => wp_create_nonce(self::NONCE_ACTION),
@@ -240,23 +239,50 @@ final class DashboardWidget
         $reason = $highlight->reason($draft, $score);
         $teaser = $this->teaser($draft, $nudge);
         $started = $draft->evocativeStarted !== '' ? $draft->evocativeStarted : ('from ' . $draft->startedHuman . ' ago');
+        $minutes = $highlight->minutesToFinish($draft);
+        $tags = $this->tagLabels($draft);
+        $completenessPct = (int) round($score->completeness * 100);
+        $progressTone = $score->completeness >= 0.8 ? 'is-near-done' : ($score->completeness >= 0.4 ? 'is-progress' : 'is-spark');
 
         ob_start();
         ?>
         <div class="ds-widget ds-widget--hero">
             <div class="ds-hero" data-id="<?php echo esc_attr((string) $draft->id); ?>">
-                <span class="ds-badge ds-badge--today">
-                    <?php esc_html_e("Today's draft", 'draft-sweeper'); ?>
-                </span>
-                <span class="ds-badge ds-badge--reason">
-                    <?php echo esc_html($this->reasonLabel($reason)); ?>
-                </span>
-                <?php if ($teaser !== '') : ?>
-                    <p class="ds-teaser"><?php echo esc_html($teaser); ?></p>
-                <?php endif; ?>
+                <div class="ds-eyebrow">
+                    <span class="ds-pill ds-pill--today">
+                        <?php esc_html_e("Today's draft", 'draft-sweeper'); ?>
+                    </span>
+                    <span class="ds-eyebrow-sep" aria-hidden="true"></span>
+                    <span class="ds-reason">
+                        <span class="dashicons <?php echo esc_attr($this->reasonIcon($reason)); ?>" aria-hidden="true"></span>
+                        <span class="ds-reason-label"><?php echo esc_html($this->reasonLabel($reason)); ?></span>
+                    </span>
+                </div>
                 <a class="ds-title" href="<?php echo esc_url($draft->editLink); ?>">
                     <?php echo wp_kses($this->displayTitle($draft), ['span' => ['class' => true]]); ?>
                 </a>
+                <div class="ds-progress">
+                    <div class="ds-progress-bar <?php echo esc_attr($progressTone); ?>"
+                         role="progressbar"
+                         aria-valuenow="<?php echo esc_attr((string) $completenessPct); ?>"
+                         aria-valuemin="0"
+                         aria-valuemax="100"
+                         aria-label="<?php echo esc_attr__('Completeness', 'draft-sweeper'); ?>">
+                        <span class="ds-progress-fill" style="width: <?php echo esc_attr((string) $completenessPct); ?>%"></span>
+                    </div>
+                    <span class="ds-progress-stats">
+                        <strong><?php echo esc_html(sprintf(__('%d%% complete', 'draft-sweeper'), $completenessPct)); ?></strong>
+                        <?php if ($minutes !== null) : ?>
+                            <span class="ds-stat-sep" aria-hidden="true">·</span>
+                            <span><?php
+                                printf(
+                                    esc_html(_n('~%s min to finish', '~%s mins to finish', $minutes, 'draft-sweeper')),
+                                    esc_html(number_format_i18n($minutes))
+                                );
+                            ?></span>
+                        <?php endif; ?>
+                    </span>
+                </div>
                 <p class="ds-meta">
                     <span><?php echo esc_html(ucfirst($started)); ?></span>
                     <span class="ds-meta-sep" aria-hidden="true">·</span>
@@ -267,11 +293,21 @@ final class DashboardWidget
                         );
                     ?></span>
                 </p>
+                <?php if ($tags !== []) : ?>
+                    <ul class="ds-chips">
+                        <?php foreach ($tags as $label) : ?>
+                            <li class="ds-chip"><?php echo esc_html($label); ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                <?php endif; ?>
+                <?php if ($teaser !== '') : ?>
+                    <blockquote class="ds-teaser"><?php echo esc_html($teaser); ?></blockquote>
+                <?php endif; ?>
                 <div class="ds-actions">
-                    <a class="button button-primary" href="<?php echo esc_url($draft->editLink); ?>">
+                    <a class="button button-primary button-hero" href="<?php echo esc_url($draft->editLink); ?>">
                         <?php esc_html_e('Pick this up', 'draft-sweeper'); ?>
                     </a>
-                    <button type="button" class="button ds-dismiss">
+                    <button type="button" class="button-link ds-dismiss">
                         <?php esc_html_e('Save for later', 'draft-sweeper'); ?>
                     </button>
                 </div>
@@ -314,10 +350,25 @@ final class DashboardWidget
         if ($nudge !== '') {
             return $nudge;
         }
-        if ($draft->openingSentence !== '') {
-            return $draft->openingSentence;
+        $candidate = $draft->openingSentence !== ''
+            ? $draft->openingSentence
+            : $this->plugin->summaryGenerator()->summarize($draft);
+
+        return $this->isBoilerplate($candidate) ? '' : $candidate;
+    }
+
+    /**
+     * Hide teasers that won't earn their visual weight: empty/very short,
+     * lorem-ipsum seed copy, or near-duplicates of the title.
+     */
+    private function isBoilerplate(string $text): bool
+    {
+        $trimmed = trim($text);
+        if (mb_strlen($trimmed) < 12) {
+            return true;
         }
-        return $this->plugin->summaryGenerator()->summarize($draft);
+        $lower = mb_strtolower($trimmed);
+        return str_contains($lower, 'lorem ipsum');
     }
 
     private function reasonLabel(string $reason): string
@@ -329,6 +380,45 @@ final class DashboardWidget
             Highlight::REASON_HALF_WRITTEN => __('A spark in progress', 'draft-sweeper'),
             default                        => __('An idea waiting', 'draft-sweeper'),
         };
+    }
+
+    private function reasonIcon(string $reason): string
+    {
+        return match ($reason) {
+            Highlight::REASON_ALMOST_DONE  => 'dashicons-yes-alt',
+            Highlight::REASON_ON_TREND     => 'dashicons-chart-line',
+            Highlight::REASON_BURIED       => 'dashicons-search',
+            Highlight::REASON_HALF_WRITTEN => 'dashicons-edit',
+            default                        => 'dashicons-lightbulb',
+        };
+    }
+
+    /**
+     * Resolves up to 3 tag/category names for a draft, for the chip row.
+     *
+     * @return list<string>
+     */
+    private function tagLabels(DraftSnapshot $draft): array
+    {
+        if ($draft->termIds === []) {
+            return [];
+        }
+        $defaultCategoryId = (int) get_option('default_category');
+        $labels = [];
+        foreach ($draft->termIds as $termId) {
+            $termId = (int) $termId;
+            if ($termId === $defaultCategoryId) {
+                continue;
+            }
+            $term = get_term($termId);
+            if ($term && ! is_wp_error($term) && isset($term->name) && $term->name !== '') {
+                $labels[] = (string) $term->name;
+                if (count($labels) >= 3) {
+                    break;
+                }
+            }
+        }
+        return $labels;
     }
 
     private function displayTitle(DraftSnapshot $draft): string
