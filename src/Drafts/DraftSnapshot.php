@@ -22,6 +22,8 @@ final class DraftSnapshot
         public readonly int $daysSinceModified,
         public readonly string $modifiedHuman,
         public readonly string $startedHuman,
+        public readonly string $evocativeStarted,
+        public readonly string $openingSentence,
         public readonly string $excerpt,
     ) {
     }

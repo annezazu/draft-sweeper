@@ -38,8 +38,8 @@ final class DashboardWidget
             return;
         }
         $url = $this->plugin->pluginUrl();
-        wp_enqueue_style('draft-sweeper-widget', $url . 'assets/widget.css', ['dashicons'], '0.3.0');
-        wp_enqueue_script('draft-sweeper-widget', $url . 'assets/widget.js', ['jquery'], '0.3.0', true);
+        wp_enqueue_style('draft-sweeper-widget', $url . 'assets/widget.css', ['dashicons'], '0.4.0');
+        wp_enqueue_script('draft-sweeper-widget', $url . 'assets/widget.js', ['jquery'], '0.4.0', true);
         wp_localize_script('draft-sweeper-widget', 'DraftSweeper', [
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'nonce'   => wp_create_nonce(self::NONCE_ACTION),
@@ -144,7 +144,6 @@ final class DashboardWidget
         if ($window === []) {
             $this->resetOffset();
             $window = array_slice($scored, 0, self::TOP_N);
-            $offset = 0;
         }
         $hasMore = $total > self::TOP_N;
 
@@ -154,19 +153,6 @@ final class DashboardWidget
         ob_start();
         ?>
         <div class="ds-widget">
-            <div class="ds-toolbar">
-                <p class="ds-intro">
-                    <?php
-                    printf(
-                        /* translators: 1: index of first surfaced draft, 2: index of last, 3: total */
-                        esc_html__('Showing %1$d–%2$d of %3$d unfinished drafts.', 'draft-sweeper'),
-                        $offset + 1,
-                        min($offset + self::TOP_N, $total),
-                        $total
-                    );
-                    ?>
-                </p>
-            </div>
             <ul class="ds-list">
                 <?php foreach ($window as $row) {
                     $this->renderItem($row['draft'], $row['score'], $highlight, $summarizer);
@@ -178,6 +164,17 @@ final class DashboardWidget
                         <span class="dashicons dashicons-update-alt" aria-hidden="true"></span>
                         <span class="ds-refresh-label"><?php esc_html_e('Show me more drafts', 'draft-sweeper'); ?></span>
                     </button>
+                    <p class="ds-pile-count"><?php
+                        printf(
+                            esc_html(_n(
+                                'You have %s draft hiding in your pile.',
+                                'You have %s drafts hiding in your pile.',
+                                $total,
+                                'draft-sweeper'
+                            )),
+                            esc_html(number_format_i18n($total))
+                        );
+                    ?></p>
                 </div>
             <?php endif; ?>
         </div>
@@ -188,31 +185,28 @@ final class DashboardWidget
     private function renderEmpty(): string
     {
         return '<div class="ds-widget"><p class="ds-empty">'
-            . esc_html__('No abandoned drafts to surface. Nice work.', 'draft-sweeper')
+            . esc_html__('Nothing hiding in your draft pile. Nice work.', 'draft-sweeper')
             . '</p></div>';
     }
 
     private function renderItem(DraftSnapshot $draft, Score $score, Highlight $highlight, $summarizer): void
     {
         $reason = $highlight->reason($draft, $score);
-        $minutes = $highlight->minutesToFinish($draft);
-        $summary = $summarizer->summarize($draft);
-        $displayTitle = $this->displayTitle($draft);
-        $completenessPct = (int) round($score->completeness * 100);
+        $teaser = $this->teaser($draft, $summarizer);
+        $started = $draft->evocativeStarted !== '' ? $draft->evocativeStarted : ('from ' . $draft->startedHuman . ' ago');
         ?>
         <li class="ds-item" data-id="<?php echo esc_attr((string) $draft->id); ?>">
-            <span class="ds-badge ds-badge--<?php echo esc_attr(str_replace('_', '-', $reason)); ?>">
+            <span class="ds-badge">
                 <?php echo esc_html($this->reasonLabel($reason)); ?>
             </span>
+            <?php if ($teaser !== '') : ?>
+                <p class="ds-teaser"><?php echo esc_html($teaser); ?></p>
+            <?php endif; ?>
             <a class="ds-title" href="<?php echo esc_url($draft->editLink); ?>">
-                <?php echo wp_kses($displayTitle, ['span' => ['class' => true]]); ?>
+                <?php echo wp_kses($this->displayTitle($draft), ['span' => ['class' => true]]); ?>
             </a>
             <p class="ds-meta">
-                <span><?php echo esc_html(sprintf(
-                    /* translators: %s: human time diff like "6 months" */
-                    __('Started %s ago', 'draft-sweeper'),
-                    $draft->startedHuman
-                )); ?></span>
+                <span><?php echo esc_html(ucfirst($started)); ?></span>
                 <span class="ds-meta-sep" aria-hidden="true">·</span>
                 <span><?php
                     printf(
@@ -220,42 +214,39 @@ final class DashboardWidget
                         esc_html(number_format_i18n($draft->wordCount))
                     );
                 ?></span>
-                <?php if ($minutes !== null) : ?>
-                    <span class="ds-meta-sep" aria-hidden="true">·</span>
-                    <span><?php
-                        printf(
-                            esc_html(_n('~%d min to finish', '~%d min to finish', $minutes, 'draft-sweeper')),
-                            $minutes
-                        );
-                    ?></span>
-                <?php endif; ?>
             </p>
-            <div class="ds-progress" role="progressbar" aria-valuenow="<?php echo esc_attr((string) $completenessPct); ?>" aria-valuemin="0" aria-valuemax="100" aria-label="<?php esc_attr_e('Completeness', 'draft-sweeper'); ?>">
-                <div class="ds-progress-bar" style="width: <?php echo esc_attr((string) $completenessPct); ?>%"></div>
-            </div>
-            <?php if ($summary !== '') : ?>
-                <p class="ds-summary"><?php echo esc_html($summary); ?></p>
-            <?php endif; ?>
             <div class="ds-actions">
                 <a class="button button-primary button-small" href="<?php echo esc_url($draft->editLink); ?>">
-                    <?php esc_html_e('Open', 'draft-sweeper'); ?>
+                    <?php esc_html_e('Pick this up', 'draft-sweeper'); ?>
                 </a>
                 <button type="button" class="button button-small ds-dismiss">
-                    <?php esc_html_e('Not now', 'draft-sweeper'); ?>
+                    <?php esc_html_e('Save for later', 'draft-sweeper'); ?>
                 </button>
             </div>
         </li>
         <?php
     }
 
+    /**
+     * Picks the most evocative teaser line: the draft's own opening sentence
+     * if we have one, otherwise the AI/template summary.
+     */
+    private function teaser(DraftSnapshot $draft, $summarizer): string
+    {
+        if ($draft->openingSentence !== '') {
+            return $draft->openingSentence;
+        }
+        return $summarizer->summarize($draft);
+    }
+
     private function reasonLabel(string $reason): string
     {
         return match ($reason) {
-            Highlight::REASON_ALMOST_DONE  => __('Almost done', 'draft-sweeper'),
-            Highlight::REASON_ON_TREND     => __('On a topic your readers love', 'draft-sweeper'),
+            Highlight::REASON_ALMOST_DONE  => __('Nearly ready', 'draft-sweeper'),
+            Highlight::REASON_ON_TREND     => __('Timely again', 'draft-sweeper'),
             Highlight::REASON_BURIED       => __('Buried treasure', 'draft-sweeper'),
-            Highlight::REASON_HALF_WRITTEN => __('Halfway there', 'draft-sweeper'),
-            default                        => __('Worth a fresh look', 'draft-sweeper'),
+            Highlight::REASON_HALF_WRITTEN => __('A spark in progress', 'draft-sweeper'),
+            default                        => __('An idea waiting', 'draft-sweeper'),
         };
     }
 
@@ -268,9 +259,9 @@ final class DashboardWidget
         $excerpt = trim($draft->excerpt);
         $snippet = $excerpt !== '' ? mb_strimwidth($excerpt, 0, 50, '…') : '';
 
-        $label = '<span class="ds-untitled">' . esc_html__('(no title)', 'draft-sweeper') . '</span>';
+        $label = '<span class="ds-untitled">' . esc_html__('Untitled', 'draft-sweeper') . '</span>';
         if ($snippet !== '') {
-            $label .= ' ' . esc_html($snippet);
+            $label .= ' · ' . esc_html($snippet);
         }
         return $label;
     }
