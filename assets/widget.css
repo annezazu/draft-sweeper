@@ -15,10 +15,15 @@
 
 .ds-list { margin: 0; padding: 0; list-style: none; }
 .ds-item {
-  padding: 16px 14px;
+  padding: 16px 14px 16px 18px;
   border-bottom: 1px solid var(--ds-border);
+  border-left: 3px solid transparent;
 }
 .ds-item:last-child { border-bottom: 0; }
+.ds-item[data-age="fresh"]   { border-left-color: #3858e9; } /* cool blue */
+.ds-item[data-age="mid"]     { border-left-color: #2271b1; } /* admin blue */
+.ds-item[data-age="aged"]    { border-left-color: #b35c00; } /* warm amber */
+.ds-item[data-age="ancient"] { border-left-color: #8a3d00; } /* deep amber */
 
 .ds-badge {
   display: inline-block;

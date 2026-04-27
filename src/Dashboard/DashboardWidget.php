@@ -12,9 +12,10 @@ final class DashboardWidget
     private const WIDGET_ID = 'draft_sweeper_widget';
     private const NONCE_ACTION = 'draft_sweeper_widget';
     private const DISMISSED_META = '_draft_sweeper_dismissed';
-    private const OFFSET_META = '_draft_sweeper_offset';
-    private const DISMISS_TTL_DAYS = 14;
+    private const SEED_META = '_draft_sweeper_seed';
+    private const DISMISS_TTL_DAYS = 30;
     private const TOP_N = 3;
+    private const POOL_SIZE = 10;
 
     public function __construct(private readonly Plugin $plugin)
     {
@@ -57,7 +58,7 @@ final class DashboardWidget
         if (! current_user_can('edit_posts')) {
             wp_send_json_error('forbidden', 403);
         }
-        $this->bumpOffset();
+        $this->reshuffle();
         wp_send_json_success(['html' => $this->renderShell()]);
     }
 
@@ -98,20 +99,20 @@ final class DashboardWidget
         return array_filter($dismissed, static fn($ts) => (int) $ts >= $cutoff);
     }
 
-    private function offset(): int
+    private function seed(): int
     {
-        $offset = (int) get_user_meta(get_current_user_id(), self::OFFSET_META, true);
-        return max(0, $offset);
+        $seed = (int) get_user_meta(get_current_user_id(), self::SEED_META, true);
+        if ($seed === 0) {
+            $seed = $this->reshuffle();
+        }
+        return $seed;
     }
 
-    private function bumpOffset(): void
+    private function reshuffle(): int
     {
-        update_user_meta(get_current_user_id(), self::OFFSET_META, $this->offset() + self::TOP_N);
-    }
-
-    private function resetOffset(): void
-    {
-        delete_user_meta(get_current_user_id(), self::OFFSET_META);
+        $seed = random_int(1, PHP_INT_MAX);
+        update_user_meta(get_current_user_id(), self::SEED_META, $seed);
+        return $seed;
     }
 
     private function renderShell(): string
@@ -135,16 +136,8 @@ final class DashboardWidget
         usort($scored, fn($a, $b) => $b['score']->total <=> $a['score']->total);
 
         $total = count($scored);
-        $offset = $this->offset();
-        if ($offset >= $total) {
-            $this->resetOffset();
-            $offset = 0;
-        }
-        $window = array_slice($scored, $offset, self::TOP_N);
-        if ($window === []) {
-            $this->resetOffset();
-            $window = array_slice($scored, 0, self::TOP_N);
-        }
+        $pool = array_slice($scored, 0, self::POOL_SIZE);
+        $window = $this->sample($pool, self::TOP_N, $this->seed());
         $hasMore = $total > self::TOP_N;
 
         $highlight = new Highlight();
@@ -162,7 +155,7 @@ final class DashboardWidget
                 <div class="ds-footer">
                     <button type="button" class="button ds-refresh">
                         <span class="dashicons dashicons-update-alt" aria-hidden="true"></span>
-                        <span class="ds-refresh-label"><?php esc_html_e('Show me more drafts', 'draft-sweeper'); ?></span>
+                        <span class="ds-refresh-label"><?php esc_html_e('Show me different ones', 'draft-sweeper'); ?></span>
                     </button>
                     <p class="ds-pile-count"><?php
                         printf(
@@ -195,7 +188,7 @@ final class DashboardWidget
         $teaser = $this->teaser($draft, $summarizer);
         $started = $draft->evocativeStarted !== '' ? $draft->evocativeStarted : ('from ' . $draft->startedHuman . ' ago');
         ?>
-        <li class="ds-item" data-id="<?php echo esc_attr((string) $draft->id); ?>">
+        <li class="ds-item" data-id="<?php echo esc_attr((string) $draft->id); ?>" data-age="<?php echo esc_attr($this->ageBucket($draft)); ?>">
             <span class="ds-badge">
                 <?php echo esc_html($this->reasonLabel($reason)); ?>
             </span>
@@ -228,6 +221,30 @@ final class DashboardWidget
     }
 
     /**
+     * Deterministic random sample of $n items from $pool, controlled by $seed.
+     * Same seed -> same draws; reshuffle changes the seed so the next render
+     * shows different ones.
+     *
+     * @template T
+     * @param  list<T> $pool
+     * @return list<T>
+     */
+    private function sample(array $pool, int $n, int $seed): array
+    {
+        $count = count($pool);
+        if ($count <= $n) {
+            return $pool;
+        }
+        $keys = array_keys($pool);
+        mt_srand($seed);
+        shuffle($keys);
+        mt_srand();
+        $picked = array_slice($keys, 0, $n);
+        sort($picked); // preserve original (score-descending) order within the sample
+        return array_map(fn($k) => $pool[$k], $picked);
+    }
+
+    /**
      * Picks the most evocative teaser line: the draft's own opening sentence
      * if we have one, otherwise the AI/template summary.
      */
@@ -237,6 +254,21 @@ final class DashboardWidget
             return $draft->openingSentence;
         }
         return $summarizer->summarize($draft);
+    }
+
+    /**
+     * Buckets a draft by age for the left-border accent. Tints span cool blue
+     * (recent) through warm amber (ancient) so a row of three cards reads as
+     * variety, not a monolith.
+     */
+    private function ageBucket(DraftSnapshot $draft): string
+    {
+        return match (true) {
+            $draft->daysSinceModified < 60   => 'fresh',
+            $draft->daysSinceModified < 180  => 'mid',
+            $draft->daysSinceModified < 540  => 'aged',
+            default                          => 'ancient',
+        };
     }
 
     private function reasonLabel(string $reason): string
