@@ -1,8 +1,10 @@
 # Draft Sweeper
 
-A WordPress dashboard widget that resurfaces abandoned drafts intelligently. *"You started this 6 months ago and it's 80% done. Your readers would love it."*
+A WordPress dashboard widget that resurfaces a single, curated abandoned draft each day. *"You started this 6 months ago and it's 80% done. Your readers would love it."*
 
-Drafts are scored on **completeness**, **recency**, and **topic relevance**, and each one gets a one-line nudge. Nudges come from a configured AI provider when the WordPress 7.0 [Connectors API](https://make.wordpress.org/core/2026/03/18/introducing-the-connectors-api-in-wordpress-7-0/) has one, and from a deterministic template otherwise — so the widget works either way.
+Every day, Draft Sweeper picks **one** draft worth returning to. Drafts are scored on **completeness**, **recency**, and **topic relevance**; the highest-scoring non-dismissed draft wins. When an AI provider is configured via the WordPress 7.0 [Connectors API](https://make.wordpress.org/core/2026/03/18/introducing-the-connectors-api-in-wordpress-7-0/), the top three candidates plus your recent site topics are handed to the model so it can choose the most resonant one and write a richer nudge — token-budget conscious by design.
+
+The pick is locked in for the day (rolling over at local midnight). "Save for later" gives you one re-pick; dismiss that too and the widget waits until tomorrow.
 
 ## Requirements
 

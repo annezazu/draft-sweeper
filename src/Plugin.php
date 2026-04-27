@@ -3,12 +3,15 @@ declare(strict_types=1);
 
 namespace DraftSweeper;
 
+use DraftSweeper\Ai\AiDailyPicker;
 use DraftSweeper\Ai\AiProviderResolver;
 use DraftSweeper\Ai\AiSummaryGenerator;
 use DraftSweeper\Ai\ExcerptSummaryGenerator;
 use DraftSweeper\Ai\SummaryGenerator;
 use DraftSweeper\Cli\SweepCommand;
+use DraftSweeper\Dashboard\DailyPicker;
 use DraftSweeper\Dashboard\DashboardWidget;
+use DraftSweeper\Drafts\DailyPickStore;
 use DraftSweeper\Drafts\DraftRepository;
 use DraftSweeper\Drafts\RecentTopicsProvider;
 use DraftSweeper\Scoring\ScoreCalculator;
@@ -97,13 +100,25 @@ final class Plugin
         return new AiSummaryGenerator(new AiProviderResolver(), $fallback);
     }
 
+    public function dailyPicker(): DailyPicker
+    {
+        return new DailyPicker();
+    }
+
+    public function aiDailyPicker(): ?AiDailyPicker
+    {
+        if (! $this->settings()['enable_ai']) {
+            return null;
+        }
+        return new AiDailyPicker(new AiProviderResolver(), $this->dailyPicker());
+    }
+
     private function registerHooks(): void
     {
-        $widget = new DashboardWidget($this);
+        $widget = new DashboardWidget($this, new DailyPickStore());
         add_action('wp_dashboard_setup', [$widget, 'register']);
         add_action('admin_enqueue_scripts', [$widget, 'enqueueAssets']);
         add_action('wp_ajax_draft_sweeper_dismiss', [$widget, 'ajaxDismiss']);
-        add_action('wp_ajax_draft_sweeper_refresh', [$widget, 'ajaxRefresh']);
 
         $settings = new SettingsPage();
         add_action('admin_init', [$settings, 'register']);
