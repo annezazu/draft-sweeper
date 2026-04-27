@@ -4,7 +4,7 @@
  * Plugin URI:        https://github.com/annezazu/draft-sweeper
  * Description:       Resurfaces abandoned drafts intelligently in the dashboard, with optional AI-generated nudges via the WordPress 7.0 Connectors API.
  * Version:           0.5.0
- * Requires at least: 7.0
+ * Requires at least: 6.5
  * Requires PHP:      8.1
  * Author:            annezazu
  * License:           GPL-2.0-or-later
