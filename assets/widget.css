@@ -127,6 +127,22 @@
   opacity: 0.6;
 }
 
+.ds-breakdown {
+  margin: 4px 0 0;
+  font-size: 11px;
+  color: var(--ds-text-soft);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.ds-breakdown .dashicons {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+  line-height: 1;
+  color: var(--ds-success);
+}
+
 /* Meta line — quiet */
 .ds-meta {
   margin: 0 0 10px;

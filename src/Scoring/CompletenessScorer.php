@@ -29,4 +29,27 @@ final class CompletenessScorer
             + 0.1 * ($hasFeaturedImage ? 1.0 : 0.0)
             + 0.1 * $termRatio;
     }
+
+    /**
+     * Returns each component's met/unmet status so the UI can show what's
+     * missing without redefining the rules.
+     *
+     * @return array{words: bool, title: bool, excerpt: bool, image: bool, terms: bool}
+     */
+    public function components(
+        int $wordCount,
+        bool $hasTitle,
+        bool $hasExcerpt,
+        bool $hasFeaturedImage,
+        int $categoryCount,
+        int $tagCount,
+    ): array {
+        return [
+            'words'   => $this->targetWordCount > 0 && $wordCount >= $this->targetWordCount,
+            'title'   => $hasTitle,
+            'excerpt' => $hasExcerpt,
+            'image'   => $hasFeaturedImage,
+            'terms'   => ($categoryCount + $tagCount) >= 3,
+        ];
+    }
 }

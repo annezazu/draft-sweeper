@@ -46,8 +46,8 @@ final class DashboardWidget
         if ($hook !== 'index.php') {
             return;
         }
-        wp_enqueue_style('draft-sweeper-widget', $this->plugin->pluginUrl('assets/widget.css'), ['dashicons'], '0.5.1');
-        wp_enqueue_script('draft-sweeper-widget', $this->plugin->pluginUrl('assets/widget.js'), ['jquery'], '0.5.1', true);
+        wp_enqueue_style('draft-sweeper-widget', $this->plugin->pluginUrl('assets/widget.css'), ['dashicons'], '0.5.2');
+        wp_enqueue_script('draft-sweeper-widget', $this->plugin->pluginUrl('assets/widget.js'), ['jquery'], '0.5.2', true);
         wp_localize_script('draft-sweeper-widget', 'DraftSweeper', [
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'nonce'   => wp_create_nonce(self::NONCE_ACTION),
@@ -243,6 +243,7 @@ final class DashboardWidget
         $tags = $this->tagLabels($draft);
         $completenessPct = (int) round($score->completeness * 100);
         $progressTone = $score->completeness >= 0.8 ? 'is-near-done' : ($score->completeness >= 0.4 ? 'is-progress' : 'is-spark');
+        $missing = $this->missingComponents($draft);
 
         ob_start();
         ?>
@@ -282,6 +283,20 @@ final class DashboardWidget
                             ?></span>
                         <?php endif; ?>
                     </span>
+                    <p class="ds-breakdown">
+                        <?php if ($missing === []) : ?>
+                            <span class="dashicons dashicons-yes" aria-hidden="true"></span>
+                            <?php esc_html_e('Ready to ship', 'draft-sweeper'); ?>
+                        <?php else : ?>
+                            <?php
+                            $shown = array_slice($missing, 0, 3);
+                            printf(
+                                esc_html__('Needs: %s', 'draft-sweeper'),
+                                esc_html(implode(', ', $shown))
+                            );
+                            ?>
+                        <?php endif; ?>
+                    </p>
                 </div>
                 <p class="ds-meta">
                     <span><?php echo esc_html(ucfirst($started)); ?></span>
@@ -398,6 +413,40 @@ final class DashboardWidget
      *
      * @return list<string>
      */
+    /**
+     * Returns labels for each completeness component the draft is still
+     * missing, in priority order (so we can truncate to top-N for display).
+     *
+     * @return list<string>
+     */
+    private function missingComponents(DraftSnapshot $draft): array
+    {
+        $components = (new \DraftSweeper\Scoring\CompletenessScorer())->components(
+            $draft->wordCount,
+            $draft->hasTitle,
+            $draft->hasExcerpt,
+            $draft->hasFeaturedImage,
+            $draft->categoryCount,
+            $draft->tagCount,
+        );
+
+        $labels = [
+            'words'   => __('more words', 'draft-sweeper'),
+            'title'   => __('title', 'draft-sweeper'),
+            'excerpt' => __('excerpt', 'draft-sweeper'),
+            'image'   => __('featured image', 'draft-sweeper'),
+            'terms'   => __('tags', 'draft-sweeper'),
+        ];
+
+        $missing = [];
+        foreach ($components as $key => $met) {
+            if (! $met) {
+                $missing[] = $labels[$key];
+            }
+        }
+        return $missing;
+    }
+
     private function tagLabels(DraftSnapshot $draft): array
     {
         if ($draft->termIds === []) {
