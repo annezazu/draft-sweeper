@@ -13,7 +13,7 @@ final class HighlightTest extends TestCase
 {
     private function snap(int $words, int $days): DraftSnapshot
     {
-        return new DraftSnapshot(1, 'Title', '', $words, true, false, false, 0, 0, [], $days, 'x', 'x', '');
+        return new DraftSnapshot(1, 'Title', '', $words, true, false, false, 0, 0, [], $days, 'x', 'x', 'x', '', '');
     }
 
     public function test_almost_done_takes_priority(): void

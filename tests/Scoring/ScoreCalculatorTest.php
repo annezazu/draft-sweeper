@@ -26,6 +26,8 @@ final class ScoreCalculatorTest extends TestCase
             daysSinceModified: 60,
             modifiedHuman: '2 months',
             startedHuman: '3 months',
+            evocativeStarted: 'from January',
+            openingSentence: 'A draft worth returning to.',
             excerpt: '...',
         );
 
@@ -38,7 +40,7 @@ final class ScoreCalculatorTest extends TestCase
     public function test_brand_new_empty_draft_scores_zero(): void
     {
         $snapshot = new DraftSnapshot(
-            1, '', '', 0, false, false, false, 0, 0, [], 0, 'just now', 'just now', ''
+            1, '', '', 0, false, false, false, 0, 0, [], 0, 'just now', 'just now', 'earlier this week', '', ''
         );
         $calc = new ScoreCalculator(new Weights(0.5, 0.2, 0.3));
         $this->assertSame(0.0, $calc->calculate($snapshot, [])->total);

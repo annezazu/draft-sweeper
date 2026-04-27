@@ -29,6 +29,8 @@ final class DraftRepository
 
         $query = new \WP_Query($args);
         $now = time();
+        $evocative = new EvocativeDate($now);
+        $opener = new OpeningSentence();
         $out = [];
 
         foreach ($query->posts as $post) {
@@ -59,6 +61,8 @@ final class DraftRepository
                 daysSinceModified: $days,
                 modifiedHuman: human_time_diff($modifiedTs, $now),
                 startedHuman: human_time_diff($createdTs, $now),
+                evocativeStarted: $evocative->describe($createdTs),
+                openingSentence: $opener->extract($content),
                 excerpt: wp_trim_words($content, 30),
             );
         }

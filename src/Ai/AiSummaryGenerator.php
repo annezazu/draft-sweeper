@@ -37,7 +37,7 @@ final class AiSummaryGenerator implements SummaryGenerator
         }
 
         $prompt = <<<PROMPT
-Summarize this in-progress blog draft in ONE plain sentence (max 25 words) describing what it's about. No quotes, no preamble, no emoji.
+Write ONE sentence (max 22 words) that captures this in-progress blog draft like a back-cover blurb — evocative, specific to its content, the kind of line that makes the writer want to return to it. No productivity language ("finish this", "complete it"). No quotes. No preamble. No emoji.
 
 Title: {$draft->title}
 Excerpt: {$draft->excerpt}
