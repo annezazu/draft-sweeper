@@ -11,9 +11,9 @@ final class DraftRepository
     }
 
     /**
-     * @return DraftSnapshot[]
+     * @return array<string, mixed>
      */
-    public function recent(?int $userId = null): array
+    public function buildQueryArgs(?int $userId = null): array
     {
         $args = [
             'post_type'      => 'post',
@@ -22,12 +22,30 @@ final class DraftRepository
             'order'          => 'DESC',
             'posts_per_page' => $this->limit,
             'no_found_rows'  => true,
+            // Exclude drafts that companion plugins have marked as
+            // intentionally time-delayed (e.g. Future Drafts'
+            // `_future_draft_remind_on`). Such drafts aren't abandoned —
+            // they're scheduled to resurface elsewhere.
+            'meta_query'     => [
+                [
+                    'key'     => '_future_draft_remind_on',
+                    'compare' => 'NOT EXISTS',
+                ],
+            ],
         ];
         if ($userId !== null) {
             $args['author'] = $userId;
         }
 
-        $query = new \WP_Query($args);
+        return $args;
+    }
+
+    /**
+     * @return DraftSnapshot[]
+     */
+    public function recent(?int $userId = null): array
+    {
+        $query = new \WP_Query($this->buildQueryArgs($userId));
         $now = time();
         $evocative = new EvocativeDate($now);
         $opener = new OpeningSentence();
