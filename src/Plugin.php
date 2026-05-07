@@ -3,11 +3,13 @@ declare(strict_types=1);
 
 namespace DraftSweeper;
 
+use DraftSweeper\Ai\AiDailyPicker;
 use DraftSweeper\Ai\AiProviderResolver;
 use DraftSweeper\Ai\AiSummaryGenerator;
 use DraftSweeper\Ai\ExcerptSummaryGenerator;
 use DraftSweeper\Ai\SummaryGenerator;
 use DraftSweeper\Cli\SweepCommand;
+use DraftSweeper\Dashboard\DailyPicker;
 use DraftSweeper\Dashboard\DashboardWidget;
 use DraftSweeper\Drafts\DraftRepository;
 use DraftSweeper\Drafts\RecentTopicsProvider;
@@ -95,6 +97,19 @@ final class Plugin
             return $fallback;
         }
         return new AiSummaryGenerator(new AiProviderResolver(), $fallback);
+    }
+
+    public function dailyPicker(): DailyPicker
+    {
+        return new DailyPicker();
+    }
+
+    public function aiDailyPicker(): ?AiDailyPicker
+    {
+        if (! $this->settings()['enable_ai']) {
+            return null;
+        }
+        return new AiDailyPicker(new AiProviderResolver(), $this->dailyPicker());
     }
 
     private function registerHooks(): void

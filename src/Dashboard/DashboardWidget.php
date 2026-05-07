@@ -156,18 +156,61 @@ final class DashboardWidget
         foreach ($available as $draft) {
             $scored[] = ['draft' => $draft, 'score' => $calc->calculate($draft, $topics)];
         }
-        usort($scored, fn($a, $b) => $b['score']->total <=> $a['score']->total);
 
-        $todays = $scored[$this->dayIndex() % count($scored)];
+        $nudge = '';
+        $aiPicker = $this->plugin->aiDailyPicker();
+        if ($aiPicker !== null) {
+            $picked = $aiPicker->pick($scored, $this->topicLabels($topics));
+            if ($picked !== null) {
+                $todays = ['draft' => $picked['draft'], 'score' => $picked['score']];
+                $nudge = $picked['nudge'];
+            } else {
+                $todays = null;
+            }
+        } else {
+            $todays = $this->plugin->dailyPicker()->pick($scored);
+        }
+
+        if ($todays === null) {
+            return $this->renderEmpty();
+        }
+
         $summarizer = $this->plugin->summaryGenerator();
 
         ob_start();
         ?>
         <ul class="ds-list">
-            <?php $this->renderItem($todays['draft'], $summarizer); ?>
+            <?php $this->renderItem($todays['draft'], $summarizer, $nudge); ?>
         </ul>
         <?php
         return (string) ob_get_clean();
+    }
+
+    private function renderEmpty(): string
+    {
+        return '<p class="ds-empty">'
+            . esc_html__('Nothing hiding in your draft pile. Nice work.', 'draft-sweeper')
+            . '</p>';
+    }
+
+    /**
+     * @param array<int, int> $topics term ID => frequency
+     * @return list<string>
+     */
+    private function topicLabels(array $topics): array
+    {
+        if ($topics === []) {
+            return [];
+        }
+        arsort($topics);
+        $labels = [];
+        foreach (array_slice(array_keys($topics), 0, 5, true) as $termId) {
+            $term = function_exists('get_term') ? get_term((int) $termId) : null;
+            if ($term && ! is_wp_error($term) && isset($term->name) && $term->name !== '') {
+                $labels[] = (string) $term->name;
+            }
+        }
+        return $labels;
     }
 
     /**
@@ -242,9 +285,9 @@ final class DashboardWidget
         return ! empty($_GET['draft_sweeper_force_toggle']);
     }
 
-    private function renderItem(DraftSnapshot $draft, $summarizer): void
+    private function renderItem(DraftSnapshot $draft, $summarizer, string $nudge = ''): void
     {
-        $teaser = $this->teaser($draft, $summarizer);
+        $teaser = $nudge !== '' ? $nudge : $this->teaser($draft, $summarizer);
         $prompt = sprintf(
             /* translators: %s is a relative time phrase like "two weeks ago" or "in October". */
             __('Pick up where you left off %s', 'draft-sweeper'),
@@ -254,7 +297,7 @@ final class DashboardWidget
         <li class="ds-item" data-id="<?php echo esc_attr((string) $draft->id); ?>">
             <span class="ds-badge"><?php echo esc_html($prompt); ?></span>
             <?php if ($teaser !== '') : ?>
-                <p class="ds-teaser"><?php echo esc_html($teaser); ?></p>
+                <p class="ds-teaser<?php echo $nudge !== '' ? ' ds-teaser-ai' : ''; ?>"><?php echo esc_html($teaser); ?></p>
             <?php endif; ?>
             <a class="ds-title" href="<?php echo esc_url($draft->editLink); ?>">
                 <?php echo wp_kses($this->displayTitle($draft), ['span' => ['class' => true]]); ?>
