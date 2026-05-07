@@ -71,6 +71,134 @@
   color: var(--ds-accent);
 }
 
+/*
+ * "Enhance with AI" toggle — visual replica of @wordpress/components
+ * ToggleControl. Same markup/classes pattern as the Habit Creator and
+ * Jot widgets so the three feel like one feature across plugins.
+ */
+.ds-ai-toggle {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  margin: 0;
+  padding: 14px 22px;
+  border-bottom: 1px solid #e5e5e5;
+  background: #fff;
+}
+
+.ds-ai-toggle__form-toggle {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  flex: 0 0 auto;
+  border-radius: 9px;
+}
+
+.ds-ai-toggle__form-toggle:focus-visible {
+  outline: 2px solid var(--ds-accent);
+  outline-offset: 2px;
+}
+
+.ds-ai-toggle__form-toggle .components-form-toggle__track {
+  position: absolute;
+  inset: 0;
+  width: 36px;
+  height: 18px;
+  border-radius: 9px;
+  background: #757575;
+  transition: background 0.1s ease;
+}
+
+.ds-ai-toggle__form-toggle.is-checked .components-form-toggle__track {
+  background: var(--ds-accent);
+}
+
+.ds-ai-toggle__form-toggle .components-form-toggle__thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.15);
+  transition: transform 0.1s ease, opacity 0.1s ease;
+}
+
+.ds-ai-toggle__form-toggle.is-checked .components-form-toggle__thumb {
+  transform: translateX(18px);
+}
+
+.ds-ai-toggle__spinner {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(0, 0, 0, 0.2);
+  border-top-color: var(--ds-accent);
+  opacity: 0;
+  transition: opacity 0.1s ease, transform 0.1s ease;
+}
+
+.ds-ai-toggle__form-toggle.is-checked .ds-ai-toggle__spinner {
+  transform: translateX(18px);
+  border-color: rgba(255, 255, 255, 0.5);
+  border-top-color: #fff;
+}
+
+.ds-ai-toggle__form-toggle.is-saving .ds-ai-toggle__spinner {
+  opacity: 1;
+  animation: ds-ai-spin 0.6s linear infinite;
+}
+
+.ds-ai-toggle__form-toggle.is-saving .components-form-toggle__thumb {
+  opacity: 0;
+}
+
+.ds-ai-toggle__form-toggle.is-saving .components-form-toggle__track {
+  animation: ds-ai-pulse 0.9s ease-in-out infinite;
+}
+
+.ds-ai-toggle__form-toggle.is-checked.is-saving .ds-ai-toggle__spinner {
+  animation-name: ds-ai-spin-checked;
+}
+
+@keyframes ds-ai-spin {
+  to { transform: translateX(0) rotate(360deg); }
+}
+
+@keyframes ds-ai-spin-checked {
+  from { transform: translateX(18px) rotate(0deg); }
+  to   { transform: translateX(18px) rotate(360deg); }
+}
+
+@keyframes ds-ai-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.55; }
+}
+
+.ds-ai-toggle__label {
+  font-size: 13px;
+  color: var(--ds-text);
+  cursor: pointer;
+  user-select: none;
+}
+
+.ds-ai-toggle__caption {
+  flex: 1 0 100%;
+  margin-left: 44px;
+  font-size: 12px;
+  color: var(--ds-text-soft);
+}
+
 .ds-empty {
   margin: 0;
   padding: 36px 22px;
