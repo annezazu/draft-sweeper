@@ -1,14 +1,14 @@
 {
   "$schema": "https://playground.wordpress.net/blueprint-schema.json",
   "preferredVersions": { "php": "8.3", "wp": "beta" },
-  "landingPage": "/wp-admin/index.php",
+  "landingPage": "/wp-admin/index.php?draft_sweeper_force_toggle=1",
   "login": true,
   "steps": [
     {
       "step": "installPlugin",
       "pluginData": {
         "resource": "url",
-        "url": "https://github-proxy.com/proxy/?repo=annezazu/draft-sweeper"
+        "url": "https://github-proxy.com/proxy/?repo=annezazu/draft-sweeper&branch=add/enhance-with-ai-toggle"
       }
     },
     {

@@ -104,6 +104,7 @@ final class Plugin
         add_action('admin_enqueue_scripts', [$widget, 'enqueueAssets']);
         add_action('wp_ajax_draft_sweeper_dismiss', [$widget, 'ajaxDismiss']);
         add_action('wp_ajax_draft_sweeper_refresh', [$widget, 'ajaxRefresh']);
+        add_action('wp_ajax_draft_sweeper_toggle_ai', [$widget, 'ajaxToggleAi']);
 
         $settings = new SettingsPage();
         add_action('admin_init', [$settings, 'register']);
