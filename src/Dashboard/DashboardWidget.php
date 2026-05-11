@@ -303,7 +303,7 @@ final class DashboardWidget
                 <?php echo wp_kses($this->displayTitle($draft), ['span' => ['class' => true]]); ?>
             </a>
             <div class="ds-actions">
-                <a class="button button-primary button-small" href="<?php echo esc_url($draft->editLink); ?>">
+                <a class="button button-primary" href="<?php echo esc_url($draft->editLink); ?>">
                     <?php esc_html_e('Pick this up', 'draft-sweeper'); ?>
                 </a>
                 <button type="button" class="ds-dismiss">
