@@ -355,13 +355,6 @@ final class DashboardWidget
             return esc_html($draft->title);
         }
 
-        $excerpt = trim($draft->excerpt);
-        $snippet = $excerpt !== '' ? mb_strimwidth($excerpt, 0, 50, '…') : '';
-
-        $label = '<span class="ds-untitled">' . esc_html__('Untitled', 'draft-sweeper') . '</span>';
-        if ($snippet !== '') {
-            $label .= ' · ' . esc_html($snippet);
-        }
-        return $label;
+        return '<span class="ds-untitled">' . esc_html__('Untitled post', 'draft-sweeper') . '</span>';
     }
 }
