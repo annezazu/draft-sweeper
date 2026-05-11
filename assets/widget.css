@@ -11,6 +11,13 @@
   font-size: 13px;
   line-height: 1.5;
   background: var(--ds-paper);
+  /* #dashboard-widgets .postbox has border-radius: 8px and a 1px
+     border, so the inner content edge curves with a 7px radius.
+     Match it on the bottom corners so the gray bg doesn't square off
+     the postbox's rounded corners. overflow: hidden clips any inner
+     content (last .ds-item, etc.) to the same curve. */
+  border-radius: 0 0 7px 7px;
+  overflow: hidden;
 }
 
 .ds-list { margin: 0; padding: 0; list-style: none; }
