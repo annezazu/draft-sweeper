@@ -62,11 +62,11 @@
   cursor: pointer;
   font: inherit;
   color: var(--ds-accent);
-  text-decoration: underline;
+  text-decoration: none;
 }
 .ds-widget .ds-dismiss:hover,
 .ds-widget .ds-dismiss:focus {
-  text-decoration: none;
+  text-decoration: underline;
   background: transparent;
   color: var(--ds-accent);
 }
