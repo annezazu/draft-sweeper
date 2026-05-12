@@ -256,13 +256,13 @@ final class DashboardWidget
                 id="ds-ai-toggle-help"
                 class="ds-ai-toggle__tooltip"
                 role="tooltip"
-                data-on="<?php esc_attr_e('Drafts are summarized by AI', 'draft-sweeper'); ?>"
-                data-off="<?php esc_attr_e('Drafts use a basic summary', 'draft-sweeper'); ?>"
+                data-on="<?php esc_attr_e('AI picks today\'s draft and writes a nudge.', 'draft-sweeper'); ?>"
+                data-off="<?php esc_attr_e('Draft shows first few words.', 'draft-sweeper'); ?>"
             ><?php
                 echo esc_html(
                     $on
-                        ? __('Drafts are summarized by AI', 'draft-sweeper')
-                        : __('Drafts use a basic summary', 'draft-sweeper')
+                        ? __('AI picks today\'s draft and writes a nudge.', 'draft-sweeper')
+                        : __('Draft shows first few words.', 'draft-sweeper')
                 );
             ?></span>
         </div>
