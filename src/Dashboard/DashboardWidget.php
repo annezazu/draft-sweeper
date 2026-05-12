@@ -242,6 +242,7 @@ final class DashboardWidget
                 role="switch"
                 aria-checked="<?php echo $on ? 'true' : 'false'; ?>"
                 aria-labelledby="ds-ai-toggle-label"
+                aria-describedby="ds-ai-toggle-help"
             >
                 <span class="components-form-toggle__track" aria-hidden="true"></span>
                 <span class="components-form-toggle__thumb" aria-hidden="true"></span>
@@ -250,18 +251,12 @@ final class DashboardWidget
             <label
                 id="ds-ai-toggle-label"
                 class="ds-ai-toggle__label"
-            ><?php esc_html_e('Enhance with AI', 'draft-sweeper'); ?></label>
+            ><?php esc_html_e('Use AI', 'draft-sweeper'); ?></label>
             <span
-                class="ds-ai-toggle__caption"
-                data-on="<?php esc_attr_e('Drafts are summarized by AI.', 'draft-sweeper'); ?>"
-                data-off="<?php esc_attr_e('AI is off — heuristic summary.', 'draft-sweeper'); ?>"
-            ><?php
-                echo esc_html(
-                    $on
-                        ? __('Drafts are summarized by AI.', 'draft-sweeper')
-                        : __('AI is off — heuristic summary.', 'draft-sweeper')
-                );
-            ?></span>
+                id="ds-ai-toggle-help"
+                class="ds-ai-toggle__tooltip"
+                role="tooltip"
+            ><?php esc_html_e('Drafts are summarized by AI', 'draft-sweeper'); ?></span>
         </div>
         <?php
     }

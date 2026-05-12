@@ -20,14 +20,9 @@
     if (! $btn.length) return;
 
     var next = $btn.attr('aria-checked') !== 'true';
-    var $wrap = $btn.closest('.ds-ai-toggle');
-    var $caption = $wrap.find('.ds-ai-toggle__caption');
     var $body = $btn.closest('.ds-widget').find('.ds-body-wrap');
 
     $btn.toggleClass('is-checked', next).attr('aria-checked', next ? 'true' : 'false').addClass('is-saving');
-    if ($caption.length) {
-      $caption.text(next ? $caption.data('on') : $caption.data('off'));
-    }
 
     $.post(DraftSweeper.ajaxUrl, {
       action: 'draft_sweeper_toggle_ai',
@@ -39,16 +34,9 @@
         $body.html(resp.data.html);
         return;
       }
-      // Revert if persistence failed.
       $btn.toggleClass('is-checked', !next).attr('aria-checked', next ? 'false' : 'true');
-      if ($caption.length) {
-        $caption.text(next ? $caption.data('off') : $caption.data('on'));
-      }
     }).fail(function () {
       $btn.removeClass('is-saving').toggleClass('is-checked', !next).attr('aria-checked', next ? 'false' : 'true');
-      if ($caption.length) {
-        $caption.text(next ? $caption.data('off') : $caption.data('on'));
-      }
     });
   });
 
