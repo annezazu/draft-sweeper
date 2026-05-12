@@ -256,7 +256,15 @@ final class DashboardWidget
                 id="ds-ai-toggle-help"
                 class="ds-ai-toggle__tooltip"
                 role="tooltip"
-            ><?php esc_html_e('Drafts are summarized by AI', 'draft-sweeper'); ?></span>
+                data-on="<?php esc_attr_e('Drafts are summarized by AI', 'draft-sweeper'); ?>"
+                data-off="<?php esc_attr_e('Drafts use a basic summary', 'draft-sweeper'); ?>"
+            ><?php
+                echo esc_html(
+                    $on
+                        ? __('Drafts are summarized by AI', 'draft-sweeper')
+                        : __('Drafts use a basic summary', 'draft-sweeper')
+                );
+            ?></span>
         </div>
         <?php
     }
