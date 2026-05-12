@@ -251,7 +251,7 @@ final class DashboardWidget
             <label
                 id="ds-ai-toggle-label"
                 class="ds-ai-toggle__label"
-            ><?php esc_html_e('Use AI', 'draft-sweeper'); ?></label>
+            ><?php esc_html_e('Uses AI', 'draft-sweeper'); ?></label>
             <span
                 id="ds-ai-toggle-help"
                 class="ds-ai-toggle__tooltip"
