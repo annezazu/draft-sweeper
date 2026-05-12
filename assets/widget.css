@@ -7,6 +7,7 @@
   --ds-text-soft: #787c82;
   --ds-paper: #f6f7f7;
   --ds-accent: var(--wp-admin-theme-color, #2271b1);
+  position: relative;
   color: var(--ds-text);
   font-size: 13px;
   line-height: 1.5;
@@ -30,6 +31,8 @@
 
 .ds-badge {
   display: block;
+  /* Right-padding leaves room for the absolute top-right "Use AI" toggle. */
+  padding-right: 100px;
   margin-bottom: 14px;
   font-size: 13px;
   color: var(--ds-text-secondary);
@@ -79,19 +82,21 @@
 }
 
 /*
- * "Enhance with AI" toggle — visual replica of @wordpress/components
- * ToggleControl. Same markup/classes pattern as the Habit Creator and
- * Jot widgets so the three feel like one feature across plugins.
+ * "Use AI" toggle — minimal chrome floated top-right of the widget body.
+ * Visual replica of @wordpress/components ToggleControl. Same markup
+ * pattern as Habit Creator and Jot so the three feel like one feature
+ * across plugins.
  */
 .ds-ai-toggle {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 1;
   display: flex;
+  flex-direction: row-reverse;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 4px 8px;
+  gap: 8px;
   margin: 0;
-  padding: 14px 22px;
-  border-bottom: 1px solid #e5e5e5;
-  background: #fff;
 }
 
 .ds-ai-toggle__form-toggle {
@@ -193,17 +198,40 @@
 }
 
 .ds-ai-toggle__label {
-  font-size: 13px;
-  color: var(--ds-text);
+  font-size: 12px;
+  color: var(--ds-text-soft);
   cursor: pointer;
   user-select: none;
 }
 
-.ds-ai-toggle__caption {
-  flex: 1 0 100%;
-  margin-left: 44px;
+/*
+ * Tooltip — visually hidden until the label is hovered or the toggle
+ * receives keyboard focus. Sits just below the toggle, anchored to its
+ * right edge so it doesn't overflow the widget on narrow viewports.
+ */
+.ds-ai-toggle__tooltip {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 2;
+  padding: 6px 10px;
+  border-radius: 4px;
+  background: #1d2327;
+  color: #fff;
   font-size: 12px;
-  color: var(--ds-text-soft);
+  line-height: 1.4;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(-2px);
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+
+.ds-ai-toggle:hover .ds-ai-toggle__tooltip,
+.ds-ai-toggle__form-toggle:focus-visible ~ .ds-ai-toggle__tooltip,
+.ds-ai-toggle__label:focus-visible ~ .ds-ai-toggle__tooltip {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .ds-empty {

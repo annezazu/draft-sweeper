@@ -242,6 +242,7 @@ final class DashboardWidget
                 role="switch"
                 aria-checked="<?php echo $on ? 'true' : 'false'; ?>"
                 aria-labelledby="ds-ai-toggle-label"
+                aria-describedby="ds-ai-toggle-help"
             >
                 <span class="components-form-toggle__track" aria-hidden="true"></span>
                 <span class="components-form-toggle__thumb" aria-hidden="true"></span>
@@ -250,16 +251,18 @@ final class DashboardWidget
             <label
                 id="ds-ai-toggle-label"
                 class="ds-ai-toggle__label"
-            ><?php esc_html_e('Enhance with AI', 'draft-sweeper'); ?></label>
+            ><?php esc_html_e('Uses AI', 'draft-sweeper'); ?></label>
             <span
-                class="ds-ai-toggle__caption"
-                data-on="<?php esc_attr_e('Drafts are summarized by AI.', 'draft-sweeper'); ?>"
-                data-off="<?php esc_attr_e('AI is off — heuristic summary.', 'draft-sweeper'); ?>"
+                id="ds-ai-toggle-help"
+                class="ds-ai-toggle__tooltip"
+                role="tooltip"
+                data-on="<?php esc_attr_e('AI picks today\'s draft and writes a nudge.', 'draft-sweeper'); ?>"
+                data-off="<?php esc_attr_e('Draft shows first few words.', 'draft-sweeper'); ?>"
             ><?php
                 echo esc_html(
                     $on
-                        ? __('Drafts are summarized by AI.', 'draft-sweeper')
-                        : __('AI is off — heuristic summary.', 'draft-sweeper')
+                        ? __('AI picks today\'s draft and writes a nudge.', 'draft-sweeper')
+                        : __('Draft shows first few words.', 'draft-sweeper')
                 );
             ?></span>
         </div>
